@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>페이지를 찾을 수 없습니다 - 404</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #0f172a;
+      --panel: #182235;
+      --panel-2: #1e293b;
+      --line: #334155;
+      --white: #f8fafc;
+      --muted: #94a3b8;
+      --emerald: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    body {
+      background: var(--ink);
+      color: var(--white);
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-shell { 
+      padding: clamp(16px, 3vw, 38px); 
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .error-card {
+      width: min(480px, 100%);
+      border: 1px solid var(--line);
+      background: #111b2d;
+      border-radius: 18px;
+      padding: clamp(30px, 5vw, 50px) 20px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .eyebrow { 
+      margin: 0 0 10px; 
+      color: var(--emerald); 
+      font-size: 14px; 
+      font-weight: 800; 
+      letter-spacing: .1em; 
+    }
+
+    h1 { 
+      margin: 0 0 15px; 
+      font-size: clamp(24px, 4vw, 32px); 
+      letter-spacing: -.05em; 
+    }
+
+    p.desc {
+      color: var(--muted);
+      font-size: clamp(14px, 2vw, 16px);
+      line-height: 1.6;
+      margin: 0 0 30px;
+      word-break: keep-all;
+    }
+
+    /* 버튼 스타일 (기존 디자인 유지) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid #059669;
+      border-radius: 10px;
+      color: var(--white);
+      background: #059669;
+      text-decoration: none; /* a 태그 밑줄 제거 */
+      font-size: 16px;
+      font-weight: 700;
+      transition: transform .15s, border-color .15s, background .15s, box-shadow .15s;
+    }
+
+    .btn:hover { 
+      background: #047857; 
+      border-color: #047857; 
+      transform: translateY(-2px); 
+    }
+
+    .btn:focus-visible { 
+      outline: 3px solid rgba(16, 185, 129, .45); 
+      outline-offset: 2px; 
+    }
+  </style>
+</head>
+<body>
+
+  <main class="app-shell">
+    <section class="error-card">
+      <p class="eyebrow">404 NOT FOUND</p>
+      <h1>페이지를 찾을 수 없습니다</h1>
+      <p class="desc">
+        입력하신 주소가 잘못되었거나,<br>
+        페이지가 삭제되어 이동할 수 없습니다.
+      </p>
+      
+      <!-- 핵심: href="/" 로 설정하여 index.html 없이 최상위 도메인으로 이동 -->
+      <a href="/" class="btn">메인 화면으로 돌아가기</a>
+    </section>
+  </main>
+
+</body>
+</html>
