@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>제윤뽑기</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #0f172a;
+      --panel: #182235;
+      --panel-2: #1e293b;
+      --line: #334155;
+      --soft-line: #e2e8f0;
+      --paper: #f8fafc;
+      --muted: #94a3b8;
+      --white: #f8fafc;
+      --emerald: #10b981;
+      --indigo: #6366f1;
+      --danger: #ef4444;
+      --desk: #d6b182;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-width: 0; min-height: 100%; margin: 0; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--ink);
+      color: var(--white);
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; padding: clamp(16px, 3vw, 38px); }
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: clamp(14px, 2vw, 24px);
+    }
+    .topbar, .classroom-card, .info-card {
+      border: 1px solid var(--line);
+      background: #111b2d;
+      border-radius: 18px;
+    }
+    .topbar {
+      min-width: 0;
+      padding: clamp(16px, 2.2vw, 24px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand { min-width: 0; }
+    .eyebrow { margin: 0 0 5px; color: var(--emerald); font-size: 12px; font-weight: 800; letter-spacing: .1em; }
+    h1 { margin: 0; font-size: clamp(22px, 3.1vw, 32px); letter-spacing: -.05em; }
+    .top-actions, .action-row { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; }
+    .btn {
+      min-height: 40px;
+      min-width: max-content;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 14px;
+      color: var(--white);
+      background: var(--panel-2);
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform .15s, border-color .15s, background .15s, opacity .15s;
+    }
+    .btn:hover:not(:disabled) { border-color: #64748b; transform: translateY(-1px); }
+    .btn:focus-visible, .switch:focus-visible, .seat:focus-visible { outline: 3px solid rgba(16, 185, 129, .45); outline-offset: 2px; }
+    .btn-primary { border-color: #059669; background: #059669; }
+    .btn-primary:hover:not(:disabled) { background: #047857; border-color: #047857; }
+    .btn-outline { background: transparent; }
+    .btn-danger { color: #fecaca; border-color: #7f1d1d; background: #3b1017; }
+    .btn:disabled { cursor: not-allowed; opacity: .38; }
+    .classroom-card { padding: clamp(16px, 2.8vw, 30px); overflow: hidden; }
+    .classroom-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: clamp(16px, 3vw, 28px); }
+    .classroom-head h2 { margin: 0; font-size: clamp(17px, 2vw, 21px); letter-spacing: -.03em; }
+    .direction { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .direction strong { color: var(--white); }
+    .switch { position: relative; width: 51px; height: 28px; padding: 0; border: 1px solid #475569; border-radius: 99px; background: #334155; flex: 0 0 auto; }
+    .switch::after { position: absolute; width: 20px; height: 20px; content: ""; left: 3px; top: 3px; border-radius: 50%; background: var(--white); transition: transform .18s ease; }
+    .switch.is-back { background: #4338ca; border-color: #6366f1; }
+    .switch.is-back::after { transform: translateX(23px); }
+    .room { display: grid; gap: clamp(13px, 2vw, 20px); min-width: 0; }
+    .teacher-desk {
+      min-height: 50px;
+      width: min(330px, 70%);
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid #b08960;
+      border-radius: 9px 9px 5px 5px;
+      color: #2f1c0c;
+      background: var(--desk);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      box-shadow: inset 0 -5px rgba(74, 47, 24, .14);
+      order: 0;
+    }
+    .seat-area { min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(9px, 1.8vw, 20px); order: 1; }
+    .room.is-back .teacher-desk { order: 2; animation: desk-settle .26s ease-out; }
+    @keyframes desk-settle { from { opacity: .45; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    .division { min-width: 0; display: grid; grid-template-rows: auto 1fr; gap: 8px; }
+    .division-title { color: var(--muted); font-size: 12px; font-weight: 800; text-align: center; }
+    .seat-column { min-width: 0; display: grid; grid-template-rows: repeat(5, minmax(52px, 1fr)); gap: clamp(7px, 1.2vw, 12px); }
+    .seat {
+      min-width: 0;
+      min-height: 52px;
+      padding: 7px 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid #475569;
+      border-radius: 9px;
+      color: var(--white);
+      background: var(--panel-2);
+      text-align: center;
+      font-size: clamp(12px, 1.65vw, 15px);
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+    .seat .seat-id { display: block; color: #cbd5e1; font-size: .78em; font-weight: 700; }
+    .seat.fixed { color: #ecfdf5; border-color: #059669; background: #064e3b; }
+    .seat.empty { color: #64748b; background: #172033; }
+    .seat.pop { animation: pop .48s cubic-bezier(.2, .8, .25, 1); border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(16,185,129,.16), 0 10px 24px rgba(0,0,0,.22); }
+    @keyframes pop { 0% { transform: scale(.96); } 45% { transform: scale(1.065); } 100% { transform: scale(1); } }
+    .room.is-back .seat-area { direction: rtl; }
+    .room.is-back .division, .room.is-back .seat-column { direction: ltr; }
+    .room.is-back .seat-column { grid-auto-flow: row; }
+    .room.is-back .division { direction: ltr; }
+    .room.is-back .seat-column .seat { }
+    .room.is-back .seat-column { transform: scaleY(-1); }
+    .room.is-back .seat { transform: scaleY(-1); }
+    .room.is-back .seat.pop { animation: pop-back .48s cubic-bezier(.2, .8, .25, 1); }
+    @keyframes pop-back { 0% { transform: scaleY(-1) scale(.96); } 45% { transform: scaleY(-1) scale(1.065); } 100% { transform: scaleY(-1) scale(1); } }
+    .room.is-back .seat-column + .seat-column { }
+    .room.is-back .seat-area { }
+    .room.is-back .division { }
+    .room.is-back .seat-area .division { }
+    .room.is-back .seat-area { grid-auto-flow: dense; }
+    .room.is-back .seat-area .division:nth-child(1) { order: 4; }
+    .room.is-back .seat-area .division:nth-child(2) { order: 3; }
+    .room.is-back .seat-area .division:nth-child(3) { order: 2; }
+    .room.is-back .seat-area .division:nth-child(4) { order: 1; }
+    .bottom-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+    .hint { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .info-card { padding: 15px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .info-card strong { font-size: 14px; }
+    .status { color: var(--muted); font-size: 13px; text-align: right; }
+    dialog { width: min(680px, calc(100% - 32px)); padding: 0; border: 1px solid #475569; border-radius: 15px; color: var(--white); background: #111b2d; box-shadow: 0 28px 80px rgba(0,0,0,.55); }
+    dialog::backdrop { background: rgba(2, 6, 23, .72); backdrop-filter: blur(3px); }
+    .modal { padding: 22px; }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+    .modal h3 { margin: 0; font-size: 20px; }
+    .modal p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .icon-btn { width: 33px; height: 33px; padding: 0; border: 1px solid var(--line); border-radius: 8px; color: var(--white); background: transparent; font-size: 20px; line-height: 1; }
+    textarea { width: 100%; min-height: 285px; resize: vertical; padding: 14px; border: 1px solid #475569; border-radius: 10px; outline: none; color: #e2e8f0; background: #0b1220; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.5; }
+    textarea:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 14px; }
+    .error { min-height: 20px; margin: 9px 0 0; color: #fca5a5; font-size: 13px; }
+    @media (max-width: 670px) {
+      .app-shell { padding: 12px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .top-actions { justify-content: flex-start; }
+      .classroom-head { align-items: flex-start; flex-direction: column; }
+      .seat-area { gap: 7px; }
+      .seat-column { gap: 6px; }
+      .seat { min-height: 44px; padding: 5px; border-radius: 7px; font-size: 11px; }
+      .division-title { font-size: 10px; }
+      .bottom-panel { grid-template-columns: 1fr; }
+      .action-row { justify-content: flex-start; }
+      .info-card { align-items: flex-start; flex-direction: column; }
+      .status { text-align: left; }
+    }
+    /* 세로 화면에서도 자리표의 가로 비율을 보존합니다. */
+    @media (orientation: portrait) and (max-width: 900px) {
+      body { overflow: hidden; }
+      .portrait-lock { position: fixed; left: 50%; top: 50%; width: 100vh; height: 100vw; overflow: auto; transform: translate(-50%, -50%) rotate(90deg); transform-origin: center; }
+      .app-shell { min-height: 100%; padding: 12px; }
+      .topbar { padding: 13px 16px; }
+      .classroom-card { padding: 14px; }
+      .teacher-desk { min-height: 39px; }
+      .seat { min-height: 38px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="portrait-lock">
+    <main class="app-shell">
+      <div class="app">
+        <header class="topbar">
+          <div class="brand">
+            <p class="eyebrow">CLASSROOM RANDOMIZER</p>
+            <h1>제윤뽑기</h1>
+          </div>
+          <div class="top-actions">
+            <button class="btn btn-outline" id="studentsBtn" type="button">학생 데이터</button>
+            <button class="btn btn-outline" id="printBtn" type="button">프린트 (인쇄)</button>
+          </div>
+        </header>
+
+        <section class="classroom-card" aria-labelledby="roomTitle">
+          <div class="classroom-head">
+            <h2 id="roomTitle">교실 자리표</h2>
+            <div class="direction">
+              <span>교탁 <strong id="frontLabel">앞</strong></span>
+              <button class="switch" id="viewToggle" type="button" role="switch" aria-checked="false" aria-label="교탁 위치 전환"></button>
+              <span>교탁 <strong id="backLabel">뒤</strong></span>
+            </div>
+          </div>
+          <div class="room" id="room">
+            <div class="teacher-desk" id="teacherDesk">교탁</div>
+            <div class="seat-area" id="seatArea" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="info-card" aria-live="polite">
+          <strong id="seatCount">19명 · 고정석 1자리</strong>
+          <span class="status" id="statusText">기본 번호순 자리표입니다.</span>
+        </section>
+
+        <section class="bottom-panel">
+          <p class="hint">교탁 뒤 시점에서는 좌우·상하 배치가 함께 반전되며, 이름 글씨는 바르게 유지됩니다.</p>
+          <div class="action-row">
+            <button class="btn btn-danger" id="resetBtn" type="button" disabled>자리 초기화하기</button>
+            <button class="btn btn-primary" id="drawBtn" type="button">자리 뽑기</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="studentModal">
+    <form class="modal" id="studentForm" method="dialog">
+      <div class="modal-head">
+        <div>
+          <h3>학생 데이터</h3>
+          <p>JSON 형식으로 입력하세요. 이름은 생략할 수 있으며, 생략 시 번호가 표시됩니다.</p>
+        </div>
+        <button class="icon-btn" id="closeModal" value="cancel" type="button" aria-label="닫기">×</button>
+      </div>
+      <textarea id="studentJson" spellcheck="false" aria-label="학생 데이터 JSON"></textarea>
+      <p class="error" id="jsonError" role="alert"></p>
+      <div class="modal-actions">
+        <button class="btn" id="cancelModal" value="cancel" type="button">취소</button>
+        <button class="btn btn-primary" type="submit">저장하기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      const STORAGE = { students: 'jeyoon-draw-students-v1', seats: 'jeyoon-draw-seats-v1', custom: 'jeyoon-draw-custom-v1' };
+      const DIVISIONS = 4;
+      const ROWS = 5;
+      const FIXED = { division: 0, row: 4, label: '펜싱부' };
+      const totalSeats = DIVISIONS * ROWS;
+      // 기본 명단: 1~21번 중 4번과 20번은 제외합니다.
+      const defaultStudents = () => Array.from({ length: 21 }, (_, i) => i + 1)
+        .filter(id => id !== 4 && id !== 20)
+        .map(id => ({ id, name: '' }));
+      const defaultSeats = () => {
+        const ids = defaultStudents().map(s => s.id);
+        const slots = [];
+        for (let d = 0; d < DIVISIONS; d++) {
+          for (let r = 0; r < ROWS; r++) {
+            slots.push(d === FIXED.division && r === FIXED.row ? 'FIXED' : (ids.shift() ?? null));
+          }
+        }
+        return slots;
+      };
+      const read = (key, fallback) => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; } catch { return fallback; } };
+      const validStudents = data => Array.isArray(data) && data.every(s => s && typeof s === 'object' && (typeof s.id === 'string' || typeof s.id === 'number') && (s.name === undefined || typeof s.name === 'string'));
+      const uniqueIds = data => new Set(data.map(s => String(s.id))).size === data.length;
+      let isCustom = read(STORAGE.custom, false) === true;
+      let students = read(STORAGE.students, defaultStudents());
+      if (!validStudents(students) || !uniqueIds(students)) students = defaultStudents();
+      // 이전 버전의 기본 명단(1~19번, 이름 없음)만 새 기본 명단으로 자연스럽게 교체합니다.
+      const isLegacyDefault = !isCustom && students.length === 19 && students.every((student, index) => String(student.id) === String(index + 1) && !student.name);
+      if (isLegacyDefault) students = defaultStudents();
+      let seats = read(STORAGE.seats, defaultSeats());
+      if (!Array.isArray(seats) || seats.length !== totalSeats || seats[4] !== 'FIXED') seats = defaultSeats();
+      if (isLegacyDefault) seats = defaultSeats();
+      let isBack = false;
+      let drawing = false;
+
+      const $ = id => document.getElementById(id);
+      const room = $('room'), seatArea = $('seatArea'), drawBtn = $('drawBtn'), resetBtn = $('resetBtn');
+      const studentMap = () => new Map(students.map(s => [String(s.id), s]));
+      const escapeHtml = value => String(value).replace(/[&<>'"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[ch]));
+      const display = id => {
+        if (id === 'FIXED') return { main: FIXED.label, sub: '', className: 'fixed' };
+        if (id === null || id === undefined) return { main: '빈 자리', sub: '', className: 'empty' };
+        const student = studentMap().get(String(id));
+        const name = student?.name?.trim();
+        return { main: name || String(id), sub: name ? `번호 ${id}` : '', className: '' };
+      };
+      const save = () => {
+        localStorage.setItem(STORAGE.students, JSON.stringify(students));
+        localStorage.setItem(STORAGE.seats, JSON.stringify(seats));
+        localStorage.setItem(STORAGE.custom, JSON.stringify(isCustom));
+      };
+      const render = (animate = false) => {
+        const groups = [];
+        for (let d = 0; d < DIVISIONS; d++) {
+          let seatsHtml = '';
+          for (let r = 0; r < ROWS; r++) {
+            const item = display(seats[d * ROWS + r]);
+            seatsHtml += `<div class="seat ${item.className} ${animate && item.className !== 'fixed' ? 'pop' : ''}"><span>${escapeHtml(item.main)}${item.sub ? `<small class="seat-id">${escapeHtml(item.sub)}</small>` : ''}</span></div>`;
+          }
+          groups.push(`<section class="division"><div class="division-title">${d + 1}분단</div><div class="seat-column">${seatsHtml}</div></section>`);
+        }
+        seatArea.innerHTML = groups.join('');
+        $('seatCount').textContent = `${students.length}명 · 고정석 1자리`;
+        resetBtn.disabled = !isCustom || drawing;
+      };
+      const setView = back => {
+        isBack = back;
+        room.classList.toggle('is-back', back);
+        $('viewToggle').classList.toggle('is-back', back);
+        $('viewToggle').setAttribute('aria-checked', String(back));
+        $('frontLabel').style.color = back ? '' : 'var(--emerald)';
+        $('backLabel').style.color = back ? 'var(--indigo)' : '';
+        $('teacherDesk').setAttribute('aria-label', back ? '교탁 뒤' : '교탁 앞');
+      };
+      const shuffle = list => {
+        const clone = [...list];
+        for (let i = clone.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [clone[i], clone[j]] = [clone[j], clone[i]]; }
+        return clone;
+      };
+      const makeDraw = () => {
+        const currentIds = seats.filter(x => x !== 'FIXED' && x !== null);
+        const known = new Set(students.map(s => String(s.id)));
+        const source = students.map(s => s.id);
+        const usable = source.length ? source : currentIds.filter(id => known.has(String(id)));
+        const shuffled = shuffle(usable);
+        let next = 0;
+        return seats.map(value => value === 'FIXED' ? 'FIXED' : (shuffled[next++] ?? null));
+      };
+      const updateStatus = message => { $('statusText').textContent = message; };
+
+      $('viewToggle').addEventListener('click', () => setView(!isBack));
+      drawBtn.addEventListener('click', () => {
+        if (drawing) return;
+        drawing = true;
+        drawBtn.disabled = true;
+        resetBtn.disabled = true;
+        updateStatus('자리를 섞는 중입니다…');
+        let steps = 0;
+        const roulette = setInterval(() => {
+          seats = makeDraw();
+          render(false);
+          steps++;
+          if (steps >= 15) {
+            clearInterval(roulette);
+            drawing = false;
+            isCustom = true;
+            save();
+            render(true);
+            drawBtn.disabled = false;
+            updateStatus('자리 뽑기가 완료되었습니다. 결과가 자동 저장되었습니다.');
+          }
+        }, 80);
+      });
+      resetBtn.addEventListener('click', () => {
+        if (!isCustom || drawing) return;
+        seats = defaultSeats();
+        students = defaultStudents();
+        isCustom = false;
+        Object.values(STORAGE).forEach(key => localStorage.removeItem(key));
+        render();
+        updateStatus('기본 번호순 자리표로 초기화했습니다.');
+      });
+
+      const modal = $('studentModal');
+      $('studentsBtn').addEventListener('click', () => {
+        $('studentJson').value = JSON.stringify(students, null, 2);
+        $('jsonError').textContent = '';
+        modal.showModal();
+      });
+      const closeModal = () => modal.close();
+      $('closeModal').addEventListener('click', closeModal);
+      $('cancelModal').addEventListener('click', closeModal);
+      $('studentForm').addEventListener('submit', event => {
+        event.preventDefault();
+        try {
+          const nextStudents = JSON.parse($('studentJson').value);
+          if (!validStudents(nextStudents)) throw new Error('각 항목은 숫자 또는 문자열 id와 선택적인 name을 가진 객체여야 합니다.');
+          if (!uniqueIds(nextStudents)) throw new Error('학생 id는 서로 중복될 수 없습니다.');
+          students = nextStudents.map(s => ({ id: s.id, name: (s.name ?? '').trim() }));
+          const ids = new Set(students.map(s => String(s.id)));
+          seats = seats.map(value => value === 'FIXED' || ids.has(String(value)) ? value : null);
+          isCustom = true;
+          save();
+          render();
+          updateStatus('학생 데이터를 저장했습니다. 이름을 바꾸면 자리표에 바로 반영됩니다.');
+          closeModal();
+        } catch (error) { $('jsonError').textContent = `저장할 수 없습니다: ${error.message}`; }
+      });
+
+      const printHtml = () => {
+        const map = studentMap();
+        let divisions = '';
+        for (let d = DIVISIONS - 1; d >= 0; d--) {
+          let cells = '';
+          // 교탁이 아래에 있는 인쇄용 시점입니다. 1분단만 6줄이고,
+          // 맨 아래(교탁에 가장 가까운 자리)는 4번, 그 앞줄은 20번으로 고정합니다.
+          const printSeats = d === 0
+            ? [seats[3], seats[2], seats[1], seats[0], 20, 4]
+            : Array.from({ length: ROWS }, (_, r) => seats[d * ROWS + (ROWS - 1 - r)]);
+          printSeats.forEach((value, rowIndex) => {
+            const id = value === 'FIXED' ? '' : value;
+            const name = map.get(String(id))?.name?.trim() || '';
+            cells += `<div class="seat"><label class="entry"><span class="student-number">${escapeHtml(id)}.</span><input aria-label="${d + 1}분단 ${rowIndex + 1}번째 자리 이름" value="${escapeHtml(name)}" placeholder="이름"></label></div>`;
+          });
+          divisions += `<section class="division"><h2>${d + 1}분단</h2><div class="seats">${cells}</div></section>`;
+        }
+        return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>1-5 자리</title><style>
+          *{box-sizing:border-box} body{margin:0;padding:18mm;color:#000;background:#fff;font-family:"Malgun Gothic",sans-serif} h1{margin:0 0 5mm;font-size:22pt;text-align:center}.note{margin:0 0 7mm;text-align:center;font-size:10pt}.room{display:grid;gap:8mm}.seat-area{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5mm;align-items:end}.division{align-self:end}.division h2{margin:0 0 2.5mm;text-align:center;font-size:11pt}.seats{display:grid;gap:3mm}.seat{height:18.5mm;border:1px solid #000;padding:2mm;display:grid;place-items:center}.entry{width:100%;display:flex;align-items:center;gap:1.5mm;white-space:nowrap}.student-number{flex:0 0 11mm;font-size:10pt;font-weight:700;text-align:right}.seat input{min-width:0;flex:1;border:0;border-bottom:1px solid #000;outline:0;background:transparent;color:#000;font:700 10.5pt "Malgun Gothic",sans-serif}.seat input::placeholder{color:#777;font-weight:400}.desk{width:46%;height:15mm;margin:0 auto;border:1px solid #000;display:grid;place-items:center;font-weight:700}.actions{margin:7mm 0 0;text-align:center}.actions button{padding:2.5mm 6mm;border:1px solid #000;background:#fff;color:#000;font-size:11pt;cursor:pointer}@page{size:A4 landscape;margin:10mm}@media print{.actions{display:none}body{padding:0}.seat input{appearance:none}.seat input::placeholder{color:transparent}}
+        </style></head><body><h1>1-5 자리</h1><p class="note">교탁에서 바라본 자리표 · 이름은 필요할 때만 입력하세요.</p><div class="room"><div class="seat-area">${divisions}</div><div class="desk">교탁</div></div><div class="actions"><button onclick="window.print()">인쇄하기</button></div></body></html>`;
+      };
+      $('printBtn').addEventListener('click', () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) { updateStatus('팝업이 차단되었습니다. 브라우저에서 팝업을 허용한 뒤 다시 시도하세요.'); return; }
+        printWindow.document.open();
+        printWindow.document.write(printHtml());
+        printWindow.document.close();
+        printWindow.focus();
+      });
+
+      setView(false);
+      render();
+    })();
+  </script>
+</body>
+</html>
